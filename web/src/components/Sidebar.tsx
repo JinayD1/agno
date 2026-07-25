@@ -62,6 +62,8 @@ export default function Sidebar() {
 
   const isHome = location.pathname === "/";
   const isRepos = location.pathname.startsWith("/repos");
+  const isLiveFeed = location.pathname.startsWith("/live");
+  const isContext = location.pathname.startsWith("/context");
   const isAgents = location.pathname.startsWith("/agents");
   const isSettings = location.pathname.startsWith("/settings");
 
@@ -138,6 +140,29 @@ export default function Sidebar() {
         icon={(color) => (
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
             <path d="M3 6h5.2l1.4 1.8H17V16H3z" stroke={color} strokeWidth={1.5} strokeLinejoin="round"></path>
+          </svg>
+        )}
+      />
+
+      <NavItem
+        active={isLiveFeed}
+        onClick={() => navigate("/live")}
+        label="Live Feed"
+        icon={(color) => (
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+            <path d="M2.5 10h3.2l1.8-5.5 3 11 2-9.5 1.6 4h3.4" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"></path>
+          </svg>
+        )}
+      />
+
+      <NavItem
+        active={isContext}
+        onClick={() => navigate("/context")}
+        label="Context"
+        icon={(color) => (
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+            <rect x="3.5" y="3.5" width="10" height="8" rx="2" stroke={color} strokeWidth={1.5}></rect>
+            <rect x="6.5" y="8.5" width="10" height="8" rx="2" fill="#0D0D10" stroke={color} strokeWidth={1.5}></rect>
           </svg>
         )}
       />

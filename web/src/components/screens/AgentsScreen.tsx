@@ -50,7 +50,7 @@ export default function AgentsScreen() {
                   <div style={{ fontSize: 12, color: "#8A8A92" }}>{agent.role}</div>
                 </div>
                 <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "#6FBF83" : "#6C6C74" }}></span>
+                  <span className={isActive ? "pulse-dot" : ""} style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "#6FBF83" : "#6C6C74" }}></span>
                 </div>
               </div>
               <div style={{ fontSize: 12, color: "#8A8A92", marginBottom: 14, fontFamily: "ui-monospace,monospace" }}>{agent.model}</div>

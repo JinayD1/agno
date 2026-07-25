@@ -3,6 +3,8 @@ import Sidebar from "./components/Sidebar";
 import HomeScreen from "./components/screens/HomeScreen";
 import ReposScreen from "./components/screens/ReposScreen";
 import RepoDetailScreen from "./components/screens/RepoDetailScreen";
+import LiveFeedScreen from "./components/screens/LiveFeedScreen";
+import ContextBoardScreen from "./components/screens/ContextBoardScreen";
 import AgentsScreen from "./components/screens/AgentsScreen";
 import SettingsScreen from "./components/screens/SettingsScreen";
 
@@ -28,6 +30,8 @@ export default function App() {
             <Route path="/" element={<HomeScreen />} />
             <Route path="/repos" element={<ReposScreen />} />
             <Route path="/repos/:repoId" element={<RepoDetailScreen />} />
+            <Route path="/live" element={<LiveFeedScreen />} />
+            <Route path="/context" element={<ContextBoardScreen />} />
             <Route path="/agents" element={<AgentsScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
           </Routes>

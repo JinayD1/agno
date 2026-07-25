@@ -1,3 +1,5 @@
+import type { Decision } from "@orbit/types";
+
 export interface Agent {
   id: string;
   name: string;
@@ -32,30 +34,39 @@ export interface DiffLine {
 }
 
 export interface DiffFile {
-  name: string;
+  path: string;
   lines: DiffLine[];
 }
 
-export type ConversationTurnKind = "message" | "tool";
-
-export interface ConversationTurn {
-  kind: ConversationTurnKind;
+// Superset of @orbit/types' TraceTurn ({role, content, timestamp}) — adds
+// speakerId so the UI can resolve a name/avatar. The contract itself doesn't
+// carry per-speaker identity yet (open question for Workstream A/B/C to
+// settle), so this is a local-only enrichment layered on top of the frozen
+// fields.
+export interface Turn {
+  role: "human" | "agent" | "tool";
   speakerId: string;
-  text: string;
-  time?: string;
+  content: string;
+  timestamp: string;
 }
 
+// Local UI model for a commit: wraps @orbit/types' OrbitCommit fields plus
+// mock-only enrichments (line-level diff, resolved turns) that aren't yet
+// part of the frozen contract — GET /api/commits/:id's exact response shape
+// is still Workstream A's to define. filesChanged mirrors what the real
+// commit object will carry; files/conversation/decisions are local until
+// then.
 export interface Commit {
   id: string;
-  hash: string;
+  gitSha: string;
   message: string;
-  authorId: string;
+  intent: string;
+  authorId: string; // agentId, or a human id for human commits
   time: string;
-  filesChanged: number;
-  additions: number;
-  deletions: number;
   files: DiffFile[];
-  conversation: ConversationTurn[];
+  taskDescription: string;
+  conversation: Turn[];
+  decisions: Decision[];
 }
 
 export interface Repo {
@@ -84,3 +95,7 @@ export interface Post {
 }
 
 export type SettingsTab = "profile" | "providers" | "org" | "billing";
+
+// ── Repo browser (file tree + viewer) ──────────────────────────────────────
+
+export type CodeLang = "python" | "typescript" | "hcl" | "markdown" | "text";

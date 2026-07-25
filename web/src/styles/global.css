@@ -60,3 +60,19 @@ button {
 .hover-btn-outline:hover {
   background: rgba(255, 255, 255, 0.04);
 }
+
+/* Active-status motion cue, per PRD §7 design direction: "bright pulsing dot
+   = active, dim static = idle". */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}

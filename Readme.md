@@ -103,5 +103,62 @@ Three workstreams, built in parallel against a contract frozen at kickoff
 
 Until the core platform lands on `main`, the MCP server's demo runs against
 `scripts/fake-orbit-api.ts` — a minimal stand-in that speaks the exact same
-§4.2 contract, so nothing on the agent or UI side changes when the real API
+REST contract, so nothing on the agent or UI side changes when the real API
 does.
+
+---
+
+## Tech
+
+The full spec lives in [`PRD.md`](./PRD.md). This is the short version.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    React Web UI                      │
+│   repo browser · commit + reasoning view · live feed │
+│              context board · agent roster            │
+└───────────────▲─────────────────────▲───────────────┘
+                │ REST                │ SSE
+┌───────────────┴─────────────────────┴───────────────┐
+│              Core Platform API (Elysia)               │
+│  repos · commits · traces · agents · permissions      │
+│  SQLite (metadata)       Bare git repo (code storage)  │
+└───────────────▲─────────────────────▲───────────────┘
+                │ internal API        │ internal API
+┌───────────────┴──────────┐ ┌────────┴────────────────┐
+│      Orbit MCP Server     │ │   Context Layer (A2A)    │
+│    8 typed agent tools    │ │  context packets store   │
+│   agent identity/scopes   │ │   pub/sub via SSE        │
+└──────────────────────────┘ └───────────────────────────┘
+         ▲                            ▲
+         │ MCP (stdio / HTTP)         │
+   Claude Code / other agents ────────┘
+```
+
+Three independent surfaces, one shared contract in the middle. Nobody talks
+to git or SQLite directly except the core API — the MCP server and the web
+client both consume it over REST/SSE.
+
+### Monorepo layout
+
+```
+agno/
+├── PRD.md                 the spec every workstream builds against
+├── packages/orbit-types/  frozen shared contract: types, REST shapes, SSE events, error codes
+├── apps/mcp-server/       agent interface: 8 MCP tools + context layer + two-agent demo
+├── apps/api/              core platform: Elysia + SQLite + git engine  (on the `core-engine` branch)
+└── web/                   human observation UI: React + Vite
+```
+
+### Stack
+
+| Piece | Choice | Why |
+|---|---|---|
+| Code storage | Bare git repos, written with plumbing (`hash-object` → `update-index` → `write-tree` → `commit-tree` → `update-ref`) | No working tree or checkout needed server-side — commits are built entirely from in-memory file contents |
+| Metadata | SQLite, fully relational | Traces, turns, and decisions are real rows, not JSON blobs, so the UI can query decisions independently — an explicit PRD requirement |
+| API | Bun + Elysia | REST endpoints plus a native `ReadableStream`-backed SSE route, one process, no separate pub/sub broker |
+| Agent interface | MCP TypeScript SDK | stdio for local dev, Streamable HTTP for hosted use — same 8 tools either way |
+| Web UI | React 18 + Vite + TypeScript + React Router | Fast dev loop, no server-side rendering needed for an internal observation tool |
+| Shared contract | `@orbit/types`, one package | Imported by every layer; a change requires a PR all three workstreams sign off on — no silent drift |

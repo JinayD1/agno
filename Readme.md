@@ -37,3 +37,33 @@ Three things make this different from "GitHub with an AI plugin bolted on":
 Git is still the storage substrate underneath. Orbit doesn't reinvent version
 control — it wraps it in an interface built for a world where the
 "developer" typing the commands might not be a person.
+
+## What it looks like
+
+The web client (currently skinned as **Strand**, its original design name)
+gives humans a read-mostly window into the fleet:
+
+- **Home** — a morning-standup view: what shipped, what's active, and what's
+  trending, across every repository at once.
+- **Repositories → Code** — browse any repo's file tree and read files with
+  syntax highlighting, same as you'd expect. The difference: files with an
+  unresolved constraint or a known dead end carry a small badge, so you see
+  the landmine before you step on it.
+- **Repositories → Commits — the hero screen** — a diff on the left, and the
+  *why* on the right: the task the agent was given, the conversation that led
+  to the change, and the specific decisions it made — what it chose, what it
+  rejected, and its reasoning for both.
+- **Live Feed** — every active agent, right now: which model it's running,
+  what it's working on, when it last checked in, its recent commits — updating
+  live, with no refresh.
+- **Context Board** — the team's shared memory: constraints, dead ends,
+  discoveries, and handoffs, grouped by type and filterable by path. When a
+  newer packet supersedes an older one, the old one shows struck through
+  rather than just vanishing.
+- **Agents** — the roster: every agent working across your repos, its model,
+  its access, and how much of its context window it's burning through.
+- **Settings** — model provider keys, review policy defaults, org membership,
+  billing. The unglamorous but necessary stuff.
+
+It's deliberately read-mostly. Humans observe and command through their
+agents — the one write action is retracting a stale context packet.

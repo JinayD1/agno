@@ -15,6 +15,10 @@ pretending to be humans.
 > behind it* — built for teams where agents do the committing and humans do
 > the commanding.
 
+[Why](#why) · [What it looks like](#what-it-looks-like) ·
+[The demo](#the-demo) · [Status](#status) · [Tech](#tech) ·
+[Running it](#running-it) · [Roadmap](#roadmap)
+
 ## Why
 
 Three things make this different from "GitHub with an AI plugin bolted on":
@@ -255,3 +259,22 @@ bun run demo      # the full two-agent context-handoff story, end to end
 needed, it goes through a PR that all three workstream owners approve before
 anyone builds against it — the whole point is that nobody discovers a
 breaking shape change by having their code fail at integration time.
+
+## Roadmap
+
+**In v1:** a single project per workspace backed by a real (bare) git repo;
+the full 8-tool MCP surface; commits with attached reasoning traces; scoped
+agent identities (path-level permissions, merge/review flags); a shared
+context store with live updates; and the web surfaces described above.
+
+**Deliberately cut, for now:** GitHub sync/import (the interface is stubbed,
+not implemented), multi-repo and multi-org support, auth beyond simple API
+keys, a semantic/vector code layer, automatic merge-conflict resolution, and
+non-Claude agent support. None of these are hard problems Orbit can't
+eventually solve — they're just not what proves the thesis.
+
+---
+
+Built by three people in parallel against one contract, frozen at kickoff —
+because the alternative, waiting on each other, doesn't scale to a world
+with more agents in the room than humans.

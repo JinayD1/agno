@@ -17,3 +17,28 @@ services:
       name: orbit-data
       mountPath: /data
       sizeGB: 1
+
+  - type: web
+    name: orbit-mcp
+    runtime: docker
+    dockerfilePath: ./apps/mcp-server/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - key: ORBIT_TRANSPORT
+        value: http
+      - key: ORBIT_HTTP_PORT
+        value: 8787
+      - key: PORT
+        value: 8787
+      - key: ORBIT_CORS_ORIGINS
+        value: "*"
+      # Fill these in from the Render dashboard after orbit-api is deployed
+      # and seeded — not committed to git.
+      - key: ORBIT_API_URL
+        sync: false
+      - key: ORBIT_REPO_ID
+        sync: false
+      - key: ORBIT_AGENT_KEYS
+        sync: false

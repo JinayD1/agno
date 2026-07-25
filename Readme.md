@@ -224,3 +224,34 @@ and motion rather than a palette (a pulsing dot for an active agent, a dim
 static one for idle), and the small amount of color that remains — muted
 green/red on diffs, for instance — is reserved for status, not decoration, so
 it doesn't compete for attention with the reasoning it's sitting next to.
+
+### Running it
+
+**Web client** (talks to a fixtures-backed mock API today — no backend needed):
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+**Agent interface**, including the two-agent demo, against an in-memory
+stand-in for the core API — also no backend needed:
+
+```bash
+cd apps/mcp-server
+bun install
+bun test          # unit tests
+bun run smoke     # real MCP client, both transports, no backend required
+bun run demo      # the full two-agent context-handoff story, end to end
+```
+
+**Core platform API** is built and tested but still lives on the
+`core-engine` branch, pending merge — see [Status](#status).
+
+### Changing the contract
+
+`packages/orbit-types` is frozen as of kickoff. If a change is genuinely
+needed, it goes through a PR that all three workstream owners approve before
+anyone builds against it — the whole point is that nobody discovers a
+breaking shape change by having their code fail at integration time.

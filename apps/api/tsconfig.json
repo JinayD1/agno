@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Workstream A runs under Bun and imports modules with explicit `.ts`
+    // extensions (see src/**). Allow that under tsc as well so `bun run build`
+    // (tsc --noEmit) typechecks cleanly.
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "scripts/**/*.ts"]
+}

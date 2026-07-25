@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ContextPacket } from "@orbit/types";
-import { getAllContext, retractContext } from "../../api/mockApi";
+import { getAllContext, retractContext } from "../../api";
 import { CONTEXT_PACKET_TYPES, CONTEXT_PACKET_TYPE_LABEL } from "../../data/contextPackets";
 import ContextPacketCard from "../ContextPacketCard";
 

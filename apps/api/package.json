@@ -1,0 +1,19 @@
+{
+  "name": "@orbit/api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "migrate": "bun src/db/migrate.ts",
+    "seed": "bun src/seed.ts",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.4.2",
+    "@orbit/types": "workspace:*",
+    "elysia": "^1.1.0",
+    "nanoid": "^5.0.0"
+  }
+}

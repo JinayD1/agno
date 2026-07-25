@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+web/dist
+web/node_modules
+.git
+.vercel
+data
+orbit.db
+orbit.db-shm
+orbit.db-wal
+.integration.json
+apps/mcp-server/.env
+apps/mcp-server/keys.local.json
+*.tsbuildinfo

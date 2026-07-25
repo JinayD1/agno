@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd web && bun install && bun run build",
+  "outputDirectory": "web/dist",
+  "installCommand": "echo 'skip root install'"
+}

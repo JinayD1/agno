@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ContextPacket, TreeNode } from "@orbit/types";
-import { getRepoTree, getRepoFile, getRepoContext } from "../api/mockApi";
+import { getRepoTree, getRepoFile, getRepoContext } from "../api";
 import { buildUiTree, type UiTreeNode } from "../utils/buildTree";
 import { langForPath, firstFilePath } from "../data/fileTree";
 import { packetsForPath } from "../data/contextPackets";

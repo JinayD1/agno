@@ -1,0 +1,19 @@
+{
+  "name": "orbit",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "bun run --filter '*' build",
+    "test": "bun test",
+    "dev:api": "bun run --filter '@orbit/api' dev",
+    "migrate": "bun run --filter '@orbit/api' migrate"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/bun": "latest"
+  }
+}

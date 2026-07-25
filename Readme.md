@@ -162,3 +162,65 @@ agno/
 | Agent interface | MCP TypeScript SDK | stdio for local dev, Streamable HTTP for hosted use — same 8 tools either way |
 | Web UI | React 18 + Vite + TypeScript + React Router | Fast dev loop, no server-side rendering needed for an internal observation tool |
 | Shared contract | `@orbit/types`, one package | Imported by every layer; a change requires a PR all three workstreams sign off on — no silent drift |
+
+### The contract
+
+Everything below is defined once, in `packages/orbit-types`, and imported by
+name (`@orbit/types`) from the API, the MCP server, and the web client alike.
+
+**REST — owned by the core API, consumed by the MCP server and the web UI:**
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/repos/:id/tree?ref=` | File tree at a ref |
+| `GET /api/repos/:id/file?path=&ref=` | File contents at a ref |
+| `POST /api/repos/:id/commits` | Commit files, with `intent` + a full trace |
+| `GET /api/repos/:id/commits` | Paginated commit history |
+| `GET /api/commits/:id` · `GET /api/traces/:id` | Commit detail · full reasoning trace |
+| `POST /api/context` · `GET /api/repos/:id/context?type=&path=` · `DELETE /api/context/:id` | Publish, query, and retract context packets |
+| `POST /api/sessions` · `PATCH /api/sessions/:id` · `GET /api/repos/:id/sessions` | Session lifecycle |
+| `GET /api/repos/:id/events` | The SSE stream — every mutation below, live |
+
+**SSE — six event types, one stream per repo:**
+
+`commit.created` · `context.published` · `context.retracted` ·
+`session.started` · `session.updated` · `session.ended`
+
+**Errors — one shape, everywhere:**
+
+```json
+{ "error": { "code": "SCOPE_DENIED", "message": "..." } }
+```
+
+with `code` always one of `NOT_FOUND`, `SCOPE_DENIED`, `INVALID_INPUT`,
+`CONFLICT`, or `INTERNAL`, and the right HTTP status alongside it.
+
+### The 8 agent tools
+
+Everything an agent can do to a repo, exposed over MCP instead of a shell:
+
+| Tool | Replaces |
+|---|---|
+| `orbit_read_tree` | `ls` / clone-and-browse |
+| `orbit_read_file` | `cat` — auto-injects any context packet whose `relatedPaths` match |
+| `orbit_commit` | `git commit` — `intent` and a structured trace are required, not optional |
+| `orbit_history` | `git log` / `git log --follow` |
+| `orbit_get_trace` | *nothing git has* — "why did this change happen," structured |
+| `orbit_publish_context` | a Slack message nobody will search for later |
+| `orbit_query_context` | asking a teammate "hey, has anyone tried X" |
+| `orbit_session_update` | *nothing git has* — powers the Live Feed |
+
+`orbit_read_file`'s auto-injection is the piece that makes the whole pitch
+work: publish a packet with `relatedPaths` covering the files it concerns,
+and any agent that later reads one of those paths sees it without asking —
+the mechanism behind the two-agent demo above.
+
+### Design system
+
+The web client follows a deliberately restrained direction: a near-black
+base with a grayscale ramp, where hierarchy comes from background elevation,
+1px borders, and type weight — not color. Status is shown through brightness
+and motion rather than a palette (a pulsing dot for an active agent, a dim
+static one for idle), and the small amount of color that remains — muted
+green/red on diffs, for instance — is reserved for status, not decoration, so
+it doesn't compete for attention with the reasoning it's sitting next to.

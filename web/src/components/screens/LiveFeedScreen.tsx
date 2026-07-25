@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { AgentSession, OrbitEvent } from "@orbit/types";
-import { getAllSessions, getInitialEvents, subscribeEvents } from "../../api/mockApi";
+import { getAllSessions, getInitialEvents, subscribeEvents } from "../../api";
 import { REPOS, agentById, resolvePerson } from "../../data/fixtures";
 import { relativeTime } from "../../utils/relativeTime";
 import Avatar from "../Avatar";

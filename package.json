@@ -11,7 +11,12 @@
   },
   "scripts": {
     "typecheck": "bun run --filter '*' typecheck",
-    "test": "bun test"
+    "test": "bun test",
+    "bootstrap": "bun scripts/bootstrap.ts",
+    "dev": "bash scripts/dev-all.sh",
+    "dev:api": "PORT=3001 bun --watch apps/api/src/index.ts",
+    "dev:mcp": "bun --env-file=apps/mcp-server/.env --watch apps/mcp-server/src/index.ts",
+    "dev:web": "cd web && bunx vite --port 5173"
   },
   "devDependencies": {
     "@types/bun": "^1.1.14",

@@ -8,3 +8,12 @@ dist/
 # keep example keys, ignore real ones
 keys.json
 keys.local.json
+.vercel
+
+# local demo/bootstrap artifacts
+orbit.db
+orbit.db-shm
+orbit.db-wal
+/data/
+.integration.json
+.mcp.json

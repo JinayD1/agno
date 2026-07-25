@@ -195,3 +195,39 @@ export interface UpdateSessionRequest {
   status?: AgentSession["status"];
   currentTask?: string | null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server-side payload aliases (Workstream A). The core API (apps/api) was built
+// against these names; they are structurally compatible with the client-facing
+// request types above and kept here so all three workstreams share one package.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** A single file write in a commit (== the inline `{ path, content }` above). */
+export interface CommitFileInput {
+  path: string;
+  content: string;
+}
+
+/** Trace attached to a commit — server-side alias of `CreateTraceInput`. */
+export interface TraceInput {
+  taskDescription: string;
+  turns: TraceTurn[];
+  decisions: Decision[];
+}
+
+/**
+ * POST /api/repos/:id/commits — body as A parses it. Superset of
+ * `CreateCommitRequest`: the server also accepts an explicit `agentId`
+ * (the authoring agent, injected by the MCP server) and `parentIds`.
+ */
+export interface CreateCommitInput {
+  files: CommitFileInput[];
+  message: string;
+  intent: string;
+  agentId?: string | null;
+  parentIds?: string[];
+  trace?: TraceInput | null;
+}
+
+/** Convenience alias for the discriminant of `OrbitEvent`. */
+export type OrbitEventType = OrbitEvent["type"];

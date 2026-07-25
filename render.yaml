@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: orbit-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: ORBIT_DB
+        value: /data/orbit.db
+      - key: ORBIT_DATA_DIR
+        value: /data/repos
+      - key: ORBIT_CORS_ORIGINS
+        value: "*"
+    disk:
+      name: orbit-data
+      mountPath: /data
+      sizeGB: 1

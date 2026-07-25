@@ -6,6 +6,13 @@
  * follows: validate input, resolve repoId, call `ctx.rest`, map errors via
  * `toToolError`, return both `content` (human-readable) and `structuredContent`
  * (schema-validated) so agents can consume either.
+ *
+ * Task 4 adds auto-injection (PRD §6 "the magic"): `orbit_read_file` queries
+ * context packets whose `relatedPaths` match the file just read and appends
+ * them to the response, so an agent reading `src/auth/login.ts` sees another
+ * agent's `failed_approach` on that path without asking for it. Best-effort —
+ * if the context lookup fails, the file read still succeeds; the agent just
+ * doesn't get the (non-essential) warning.
  */
 
 import { z } from "zod";
@@ -13,7 +20,9 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { ReadFileResponse, ReadTreeResponse } from "@orbit/types";
 import type { ToolContext } from "./context.js";
+import { contextPacketShape } from "./context-packets.js";
 import { OrbitError, toToolError } from "../errors.js";
+import { log } from "../logger.js";
 
 /** structuredContent is typed `{[x: string]: unknown}` by the SDK; our response DTOs are exact. */
 function asStructuredContent<T extends object>(value: T): { [x: string]: unknown } {
@@ -64,6 +73,13 @@ const readFileOutputShape = {
   path: z.string(),
   content: z.string(),
   size: z.number(),
+  context: z
+    .array(z.object(contextPacketShape))
+    .optional()
+    .describe(
+      "Context packets other agents published whose `relatedPaths` match this file — auto-injected, " +
+        "no need to call `orbit_query_context` separately. Absent/empty when none match.",
+    ),
 };
 
 /** Resolve the repoId a call targets: explicit arg wins, else the bound connection repo. */
@@ -111,7 +127,9 @@ export function registerReadTools(server: McpServer, ctx: ToolContext): void {
       title: "Read file",
       description:
         "Read a file's contents at a ref, by repo-relative path. Use `orbit_read_tree` " +
-        "first if you don't already know the path.",
+        "first if you don't already know the path. Automatically includes any `context` packets " +
+        "other agents published for this path (constraints, failed approaches, open threads) — " +
+        "check the `context` field before making changes here.",
       inputSchema: readFileInputShape,
       outputSchema: readFileOutputShape,
       annotations: { readOnlyHint: true, openWorldHint: false },
@@ -120,13 +138,37 @@ export function registerReadTools(server: McpServer, ctx: ToolContext): void {
       try {
         const repoId = resolveRepoId(ctx, input);
         const result: ReadFileResponse = await ctx.rest.readFile(repoId, input.path, input.ref);
+
+        const packets = await queryMatchingContext(ctx, repoId, input.path);
+        const withContext = packets.length > 0 ? { ...result, context: packets } : result;
+
         return {
-          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-          structuredContent: asStructuredContent(result),
+          content: [{ type: "text", text: JSON.stringify(withContext, null, 2) }],
+          structuredContent: asStructuredContent(withContext),
         };
       } catch (err) {
         return toToolError(err);
       }
     },
   );
+}
+
+/**
+ * Best-effort auto-injection lookup: packets whose `relatedPaths` match
+ * `path`, via A's `path=` filter on `GET /repos/:id/context` (§4.2). A failure
+ * here must not fail the read — it just means the agent doesn't get the
+ * (non-essential) heads-up this call would have added.
+ */
+async function queryMatchingContext(ctx: ToolContext, repoId: string, path: string) {
+  try {
+    const { packets } = await ctx.rest.queryContext(repoId, { path });
+    return packets;
+  } catch (err) {
+    log.warn("context auto-injection lookup failed; returning file without context", {
+      repoId,
+      path,
+      err: err instanceof Error ? err.message : String(err),
+    });
+    return [];
+  }
 }

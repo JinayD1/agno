@@ -65,3 +65,29 @@ export type CommitArgs = z.infer<typeof commitArgsSchema>;
 export function formatZodIssues(error: z.ZodError): string {
   return error.issues.map((issue) => (issue.path.length ? `${issue.path.join(".")}: ${issue.message}` : issue.message)).join("; ");
 }
+
+/**
+ * Client-side validation for `orbit_publish_context`'s args (PRD §4.1
+ * `ContextPacket` / §6 Task 4). Mirrors `commitArgsSchema`'s pattern: catch
+ * malformed packets here so they come back as one clean INVALID_INPUT tool
+ * error instead of a round trip through A.
+ */
+export const CONTEXT_PACKET_TYPES = ["constraint", "failed_approach", "open_thread", "discovery", "handoff"] as const;
+
+export const publishContextArgsSchema = z.object({
+  repoId: z.string().trim().min(1).optional(),
+  type: z.enum(CONTEXT_PACKET_TYPES),
+  title: z.string().trim().min(1, "title is required").max(120, "title exceeds the 120 char limit"),
+  body: z.string().trim().min(1, "body is required").max(8000, "body exceeds the 8000 char limit"),
+  relatedPaths: z.array(z.string().trim().min(1, "relatedPaths[] entries must not be empty")).default([]),
+  supersedes: z.string().trim().min(1).nullable().optional(),
+  expiresAt: z
+    .string()
+    .trim()
+    .min(1)
+    .nullable()
+    .optional()
+    .refine((v) => v == null || !Number.isNaN(Date.parse(v)), "expiresAt must be a valid ISO 8601 date string or null"),
+});
+
+export type PublishContextArgs = z.infer<typeof publishContextArgsSchema>;

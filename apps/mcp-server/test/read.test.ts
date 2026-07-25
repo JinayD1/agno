@@ -85,9 +85,11 @@ describe("orbit_read_tree / orbit_read_file — schemas + wrapper pattern", () =
   });
 
   test("orbit_read_file wraps GET /repos/:id/file with path + ref", async () => {
-    let calledUrl = "";
+    let fileUrl = "";
     const fetchImpl = (async (url: string) => {
-      calledUrl = String(url);
+      const u = new URL(String(url));
+      if (u.pathname.endsWith("/context")) return new Response(JSON.stringify({ packets: [] }), { status: 200 });
+      fileUrl = String(url);
       return new Response(
         JSON.stringify({ repoId: "repo_demo", ref: "main", path: "src/index.ts", content: "export {}", size: 10 }),
         { status: 200 },
@@ -97,7 +99,7 @@ describe("orbit_read_tree / orbit_read_file — schemas + wrapper pattern", () =
     const { client, close } = await harness({ repoId: "repo_demo", fetchImpl });
     try {
       const res = await client.callTool({ name: "orbit_read_file", arguments: { path: "src/index.ts", ref: "main" } });
-      expect(calledUrl).toBe("http://a:4000/api/repos/repo_demo/file?path=src%2Findex.ts&ref=main");
+      expect(fileUrl).toBe("http://a:4000/api/repos/repo_demo/file?path=src%2Findex.ts&ref=main");
       expect(res.structuredContent).toMatchObject({ path: "src/index.ts", content: "export {}" });
     } finally {
       await close();
@@ -152,6 +154,100 @@ describe("orbit_read_tree / orbit_read_file — schemas + wrapper pattern", () =
       expect(res.isError).toBe(true);
       const text = (res.content as Array<{ type: string; text?: string }>)[0]?.text ?? "";
       expect(text).toContain("path");
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe("orbit_read_file — context auto-injection", () => {
+  const samplePacket = {
+    id: "ctx_1",
+    repoId: "repo_demo",
+    agentId: "agent_other",
+    type: "failed_approach",
+    title: "Don't use bcrypt here",
+    body: "Sync bcrypt blocks the event loop under load. Use argon2 instead.",
+    relatedPaths: ["src/auth/login.ts"],
+    supersedes: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    expiresAt: null,
+  };
+
+  /** Routes by URL path so one fetchImpl can serve both the file GET and the context GET. */
+  function routedFetch(routes: { file: unknown; context: unknown }): typeof fetch {
+    return (async (url: string) => {
+      const u = new URL(String(url));
+      if (u.pathname.endsWith("/file")) return new Response(JSON.stringify(routes.file), { status: 200 });
+      if (u.pathname.endsWith("/context")) return new Response(JSON.stringify(routes.context), { status: 200 });
+      throw new Error(`unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+  }
+
+  test("appends matching context packets to the read response", async () => {
+    let contextUrl = "";
+    const fetchImpl = (async (url: string) => {
+      const u = new URL(String(url));
+      if (u.pathname.endsWith("/file")) {
+        return new Response(
+          JSON.stringify({ repoId: "repo_demo", ref: "main", path: "src/auth/login.ts", content: "export {}", size: 10 }),
+          { status: 200 },
+        );
+      }
+      contextUrl = String(url);
+      return new Response(JSON.stringify({ packets: [samplePacket] }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const { client, close } = await harness({ repoId: "repo_demo", fetchImpl });
+    try {
+      const res = await client.callTool({ name: "orbit_read_file", arguments: { path: "src/auth/login.ts" } });
+      expect(res.isError).not.toBe(true);
+      expect(contextUrl).toContain("/api/repos/repo_demo/context");
+      expect(contextUrl).toContain("path=src%2Fauth%2Flogin.ts");
+      const structured = res.structuredContent as { context?: unknown[] };
+      expect(structured.context).toHaveLength(1);
+      expect((structured.context as Array<{ id: string }>)[0]?.id).toBe("ctx_1");
+    } finally {
+      await close();
+    }
+  });
+
+  test("omits the `context` field entirely when nothing matches", async () => {
+    const fetchImpl = routedFetch({
+      file: { repoId: "repo_demo", ref: "main", path: "src/other.ts", content: "export {}", size: 10 },
+      context: { packets: [] },
+    });
+
+    const { client, close } = await harness({ repoId: "repo_demo", fetchImpl });
+    try {
+      const res = await client.callTool({ name: "orbit_read_file", arguments: { path: "src/other.ts" } });
+      expect(res.isError).not.toBe(true);
+      const structured = res.structuredContent as { context?: unknown[] };
+      expect(structured.context).toBeUndefined();
+    } finally {
+      await close();
+    }
+  });
+
+  test("file read still succeeds if the context lookup fails", async () => {
+    const fetchImpl = (async (url: string) => {
+      const u = new URL(String(url));
+      if (u.pathname.endsWith("/file")) {
+        return new Response(
+          JSON.stringify({ repoId: "repo_demo", ref: "main", path: "src/auth/login.ts", content: "export {}", size: 10 }),
+          { status: 200 },
+        );
+      }
+      return new Response(JSON.stringify({ error: { code: "INTERNAL", message: "context store down" } }), { status: 500 });
+    }) as unknown as typeof fetch;
+
+    const { client, close } = await harness({ repoId: "repo_demo", fetchImpl });
+    try {
+      const res = await client.callTool({ name: "orbit_read_file", arguments: { path: "src/auth/login.ts" } });
+      expect(res.isError).not.toBe(true);
+      const structured = res.structuredContent as { content?: string; context?: unknown[] };
+      expect(structured.content).toBe("export {}");
+      expect(structured.context).toBeUndefined();
     } finally {
       await close();
     }

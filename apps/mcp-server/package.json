@@ -12,7 +12,9 @@
     "start": "bun run src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "smoke": "bun run scripts/smoke.ts"
+    "smoke": "bun run scripts/smoke.ts",
+    "demo": "bun run scripts/demo.ts",
+    "demo:server": "bun run scripts/demo-server.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

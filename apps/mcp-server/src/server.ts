@@ -2,10 +2,11 @@
  * Builds a per-connection Orbit MCP server bound to one agent.
  *
  * Task 1 registered the diagnostic toolset; Task 2 added the read tools
- * (`orbit_read_tree`, `orbit_read_file`); Task 3 added `orbit_commit`. Task 5
- * adds session lifecycle (register on connect, heartbeat, end on disconnect)
- * plus the remaining history/session tools. Task 4 registers the context
- * tools.
+ * (`orbit_read_tree`, `orbit_read_file`); Task 3 added `orbit_commit`. Task 4
+ * adds the context tools (`orbit_publish_context`, `orbit_query_context`) and
+ * auto-injects matching packets into `orbit_read_file` (see `tools/read.ts`).
+ * Task 5 adds session lifecycle (register on connect, heartbeat, end on
+ * disconnect) plus the remaining history/session tools.
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -18,6 +19,7 @@ import { registerReadTools } from "./tools/read.js";
 import { registerHistoryTools } from "./tools/history.js";
 import { registerSessionTools } from "./tools/session.js";
 import { registerCommitTools } from "./tools/commit.js";
+import { registerContextTools } from "./tools/context-packets.js";
 import { log } from "./logger.js";
 
 export const SERVER_NAME = "orbit-mcp";
@@ -58,7 +60,7 @@ export function createOrbitServer(opts: CreateServerOptions): McpServer {
   registerHistoryTools(server, ctx);
   registerSessionTools(server, ctx);
   registerCommitTools(server, ctx);
-  // Task 4 registers the context tools here.
+  registerContextTools(server, ctx);
 
   // Register on connect; end on disconnect (transport close fires this
   // regardless of whether the client disconnected or we called `.close()`).

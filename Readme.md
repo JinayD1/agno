@@ -67,3 +67,41 @@ gives humans a read-mostly window into the fleet:
 
 It's deliberately read-mostly. Humans observe and command through their
 agents — the one write action is retracting a stale context packet.
+
+## The demo
+
+This is the story the whole system is built to tell:
+
+1. A human hands Agent 1 a task in Claude Code. The Live Feed shows the
+   session appear immediately.
+2. Agent 1 hits a dead end, publishes a `failed_approach` packet explaining
+   what didn't work and why, and commits the partial attempt — with the full
+   trace attached.
+3. A human opens the commit view and sees both halves of the story at once:
+   the diff, and the reasoning that produced it.
+4. Agent 2 picks up the follow-up task in a brand-new session, with zero
+   coordination with Agent 1. The moment it reads the same file, Orbit
+   injects Agent 1's packet into the response, unprompted. Agent 2 skips the
+   dead end and ships the real fix.
+5. The Context Board closes the loop: the team's accumulated knowledge,
+   sitting there for the next agent — and the next human — with no meeting
+   held and no Slack thread written.
+
+This isn't a mockup of the idea. The two-agent handoff runs today, end to
+end, via `apps/mcp-server`'s demo scripts — see [Status](#status) below.
+
+## Status
+
+Three workstreams, built in parallel against a contract frozen at kickoff
+(`packages/orbit-types`):
+
+| Layer | Status |
+|---|---|
+| **Agent interface & context layer** (`apps/mcp-server`) | Complete. All 8 tools live, both transports (stdio + Streamable HTTP), context auto-injection, session lifecycle, and the two-agent demo — verified across 15 sequential and 8 parallel runs with zero flakes. |
+| **Core platform & storage** (`apps/api`) | Elysia + SQLite + a plumbing-level git engine, built and tested on the `core-engine` branch; not yet merged into `main`. |
+| **Human observation UI** (`web/`) | All four PRD surfaces (plus Home, Agents, and Settings) are built and running against a fixtures-backed mock API shaped exactly like the real REST contract — ready to swap in the real endpoints without touching a component. |
+
+Until the core platform lands on `main`, the MCP server's demo runs against
+`scripts/fake-orbit-api.ts` — a minimal stand-in that speaks the exact same
+§4.2 contract, so nothing on the agent or UI side changes when the real API
+does.

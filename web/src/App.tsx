@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import HomeScreen from "./components/screens/HomeScreen";
 import ReposScreen from "./components/screens/ReposScreen";
@@ -34,6 +34,9 @@ export default function App() {
             <Route path="/context" element={<ContextBoardScreen />} />
             <Route path="/agents" element={<AgentsScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
+            {/* Catch-all: any unknown URL falls back to Home so nothing ever
+                lands on a blank white page. */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </div>

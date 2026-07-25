@@ -80,6 +80,7 @@ export async function runHttp(config: OrbitMcpConfig): Promise<void> {
       apiUrl: config.apiUrl,
       apiKey,
       repoId: config.repoId,
+      sessionHeartbeatMs: config.sessionHeartbeatMs,
     });
     await entry.server.connect(entry.transport);
     return entry;

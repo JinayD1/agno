@@ -29,6 +29,8 @@ export interface OrbitMcpConfig {
   keysFile: string | null;
   /** Inline JSON key registry (alternative to keysFile), from ORBIT_AGENT_KEYS. */
   keysInline: string | null;
+  /** Session heartbeat interval in ms (PATCH /sessions/:id while connected). */
+  sessionHeartbeatMs: number;
   http: HttpConfig;
 }
 
@@ -52,6 +54,15 @@ function nonEmpty(raw: string | undefined): string | null {
   return v ? v : null;
 }
 
+function parsePositiveInt(raw: string | undefined, fallback: number, name: string): number {
+  if (raw === undefined || raw === "") return fallback;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0) {
+    throw new OrbitError("INVALID_INPUT", `${name} must be a positive integer, got "${raw}"`);
+  }
+  return n;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): OrbitMcpConfig {
   const transport = parseTransport(env.ORBIT_TRANSPORT);
   const apiUrl = (nonEmpty(env.ORBIT_API_URL) ?? "http://localhost:4000").replace(/\/+$/, "");
@@ -63,6 +74,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): OrbitMcpConfig
     apiKey: nonEmpty(env.ORBIT_API_KEY),
     keysFile: nonEmpty(env.ORBIT_AGENT_KEYS_FILE),
     keysInline: nonEmpty(env.ORBIT_AGENT_KEYS),
+    sessionHeartbeatMs: parsePositiveInt(env.ORBIT_SESSION_HEARTBEAT_MS, 30_000, "ORBIT_SESSION_HEARTBEAT_MS"),
     http: {
       port: parsePort(env.ORBIT_HTTP_PORT, 8787),
       path: nonEmpty(env.ORBIT_HTTP_PATH) ?? "/mcp",

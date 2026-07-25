@@ -6,6 +6,7 @@
 
 import type { AgentIdentity } from "@orbit/types";
 import type { OrbitRestClient } from "../rest-client.js";
+import type { SessionManager } from "../session.js";
 
 export interface ToolContext {
   /** The identity this connection is bound to. */
@@ -14,4 +15,6 @@ export interface ToolContext {
   rest: OrbitRestClient;
   /** Repo bound to this connection (single repo per workspace, v1). */
   repoId: string | null;
+  /** Tracks this connection's registered session (start/heartbeat/update/end). */
+  session: SessionManager;
 }

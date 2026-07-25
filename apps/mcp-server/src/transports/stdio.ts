@@ -23,6 +23,7 @@ export async function runStdio(config: OrbitMcpConfig): Promise<void> {
     apiUrl: config.apiUrl,
     apiKey: config.apiKey,
     repoId: config.repoId,
+    sessionHeartbeatMs: config.sessionHeartbeatMs,
   });
 
   const transport = new StdioServerTransport();

@@ -21,6 +21,7 @@ function cfg(overrides: Partial<OrbitMcpConfig>): OrbitMcpConfig {
     apiKey: null,
     keysFile: null,
     keysInline: null,
+    sessionHeartbeatMs: 30_000,
     http: { port: 8787, path: "/mcp", corsOrigins: [] },
     ...overrides,
   };

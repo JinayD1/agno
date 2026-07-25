@@ -1,15 +1,23 @@
 /**
  * Builds a per-connection Orbit MCP server bound to one agent.
  *
- * Task 1 registers only the diagnostic toolset; Tasks 2–5 add the 8 core tools
- * by calling additional `register*Tools(server, ctx)` functions here.
+ * Task 1 registered the diagnostic toolset; Task 2 added the read tools
+ * (`orbit_read_tree`, `orbit_read_file`); Task 3 added `orbit_commit`. Task 5
+ * adds session lifecycle (register on connect, heartbeat, end on disconnect)
+ * plus the remaining history/session tools. Task 4 registers the context
+ * tools.
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { AgentIdentity } from "@orbit/types";
 import { OrbitRestClient } from "./rest-client.js";
+import { SessionManager } from "./session.js";
 import type { ToolContext } from "./tools/context.js";
 import { registerDiagnosticTools } from "./tools/diagnostics.js";
+import { registerReadTools } from "./tools/read.js";
+import { registerHistoryTools } from "./tools/history.js";
+import { registerSessionTools } from "./tools/session.js";
+import { registerCommitTools } from "./tools/commit.js";
 import { log } from "./logger.js";
 
 export const SERVER_NAME = "orbit-mcp";
@@ -21,6 +29,8 @@ export interface CreateServerOptions {
   apiKey: string;
   repoId: string | null;
   fetchImpl?: typeof fetch;
+  /** Session heartbeat interval in ms (default 30s). */
+  sessionHeartbeatMs?: number;
 }
 
 export function createOrbitServer(opts: CreateServerOptions): McpServer {
@@ -40,10 +50,20 @@ export function createOrbitServer(opts: CreateServerOptions): McpServer {
     fetchImpl: opts.fetchImpl,
   });
 
-  const ctx: ToolContext = { agent: opts.agent, rest, repoId: opts.repoId };
+  const session = new SessionManager({ rest, repoId: opts.repoId, heartbeatMs: opts.sessionHeartbeatMs });
+  const ctx: ToolContext = { agent: opts.agent, rest, repoId: opts.repoId, session };
 
-  // Task 1: diagnostics only. Tasks 2–5 register the 8 core tools here.
   registerDiagnosticTools(server, ctx);
+  registerReadTools(server, ctx);
+  registerHistoryTools(server, ctx);
+  registerSessionTools(server, ctx);
+  registerCommitTools(server, ctx);
+  // Task 4 registers the context tools here.
+
+  // Register on connect; end on disconnect (transport close fires this
+  // regardless of whether the client disconnected or we called `.close()`).
+  void session.start();
+  server.server.onclose = () => void session.end();
 
   log.debug("orbit server created", { agentId: opts.agent.id, repoId: opts.repoId });
   return server;

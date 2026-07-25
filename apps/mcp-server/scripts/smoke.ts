@@ -1,11 +1,15 @@
 #!/usr/bin/env bun
 /**
- * End-to-end smoke test for Task 1: connect a real MCP client over BOTH
- * transports, list tools, and call orbit_whoami to prove the auth binding.
+ * End-to-end smoke test: connect a real MCP client over BOTH transports, list
+ * tools, and call tools to prove the wrapper pattern end-to-end.
  *
  *   bun run scripts/smoke.ts
  *
- * Uses the offline key registry (keys.example.json) so it needs no Workstream A.
+ * Uses the offline key registry (keys.example.json) so it needs no Workstream A
+ * for auth binding (Task 1) or tool listing/schema checks (Task 2). Workstream
+ * A doesn't exist in this repo yet, so the read-tool calls here only prove that
+ * a real REST round trip is attempted and A-unreachable maps to a clean
+ * INTERNAL tool error — not that live tree/file data comes back.
  */
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -47,6 +51,13 @@ async function testStdio() {
   const tools = await client.listTools();
   const names = tools.tools.map((t) => t.name);
   check("lists orbit_whoami", names.includes("orbit_whoami"), names);
+  check("lists orbit_read_tree", names.includes("orbit_read_tree"), names);
+  check("lists orbit_read_file", names.includes("orbit_read_file"), names);
+
+  const readTree = tools.tools.find((t) => t.name === "orbit_read_tree");
+  const readFile = tools.tools.find((t) => t.name === "orbit_read_file");
+  check("orbit_read_tree declares input + output schemas", Boolean(readTree?.inputSchema && readTree?.outputSchema));
+  check("orbit_read_file declares input + output schemas", Boolean(readFile?.inputSchema && readFile?.outputSchema));
 
   const res = await client.callTool({ name: "orbit_whoami", arguments: {} });
   const text = (res.content as Array<{ type: string; text?: string }>)[0]?.text ?? "";
@@ -54,6 +65,19 @@ async function testStdio() {
   check("whoami resolves the bound agent", parsed.agentId === "agent_dev1", parsed);
   check("whoami reports the bound repo", parsed.boundRepoId === "repo_demo", parsed);
   check("whoami reflects agent scopes", Array.isArray(parsed.scopes?.pathsAllowed), parsed.scopes);
+
+  // A doesn't exist in this repo yet — prove the wrapper still round-trips
+  // cleanly to a REST call attempt and maps the failure to an actionable error.
+  const missingPath = await client.callTool({ name: "orbit_read_file", arguments: {} });
+  check("orbit_read_file rejects a missing `path` with a clean tool error", missingPath.isError === true, missingPath);
+
+  const treeCall = await client.callTool({ name: "orbit_read_tree", arguments: {} });
+  const treeText = (treeCall.content as Array<{ type: string; text?: string }>)[0]?.text ?? "";
+  check(
+    "orbit_read_tree attempts A and reports a clean error when A is unreachable",
+    treeCall.isError === true && treeText.includes("INTERNAL"),
+    treeText,
+  );
 
   await client.close();
 }

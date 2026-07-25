@@ -1,0 +1,23 @@
+{
+  "name": "@orbit/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "orbit-mcp": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "ORBIT_TRANSPORT=stdio bun run src/index.ts",
+    "dev:http": "ORBIT_TRANSPORT=http bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "smoke": "bun run scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@orbit/types": "workspace:*",
+    "nanoid": "^5.0.0",
+    "zod": "^3.23.0"
+  }
+}

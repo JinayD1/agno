@@ -1,0 +1,34 @@
+{
+  "keys": {
+    "orbit_sk_dev_agent1": {
+      "agentId": "agent_dev1",
+      "agent": {
+        "id": "agent_dev1",
+        "name": "claude-code-dev-1",
+        "model": "claude-sonnet-4-6",
+        "ownerHuman": "vibhor",
+        "scopes": {
+          "pathsAllowed": ["src/**", "!src/auth/**"],
+          "canMerge": false,
+          "canReview": true
+        },
+        "createdAt": "2026-01-01T00:00:00.000Z"
+      }
+    },
+    "orbit_sk_dev_agent2": {
+      "agentId": "agent_dev2",
+      "agent": {
+        "id": "agent_dev2",
+        "name": "claude-code-dev-2",
+        "model": "claude-sonnet-4-6",
+        "ownerHuman": "vibhor",
+        "scopes": {
+          "pathsAllowed": ["**"],
+          "canMerge": true,
+          "canReview": true
+        },
+        "createdAt": "2026-01-01T00:00:00.000Z"
+      }
+    }
+  }
+}

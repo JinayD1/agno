@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+.DS_Store
+
+# keep example keys, ignore real ones
+keys.json
+keys.local.json

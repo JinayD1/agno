@@ -1,0 +1,78 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+input::placeholder {
+  color: #5c5c64;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Hover states — mirrors the mockup's style-hover="" attributes */
+.hover-row:hover {
+  background: #18181c;
+}
+
+.hover-surface:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hover-bright:hover {
+  color: #ededef;
+}
+
+.hover-btn-primary:hover {
+  background: #fff;
+}
+
+.hover-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Active-status motion cue, per PRD §7 design direction: "bright pulsing dot
+   = active, dim static = idle". */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}

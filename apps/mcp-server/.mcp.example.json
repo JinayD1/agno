@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "orbit-local-stdio": {
+      "command": "bun",
+      "args": ["run", "src/index.ts"],
+      "env": {
+        "ORBIT_TRANSPORT": "stdio",
+        "ORBIT_API_URL": "http://localhost:4000",
+        "ORBIT_REPO_ID": "repo_demo",
+        "ORBIT_AGENT_KEYS_FILE": "./keys.example.json",
+        "ORBIT_API_KEY": "orbit_sk_dev_agent1"
+      }
+    },
+    "orbit-hosted-http": {
+      "type": "http",
+      "url": "https://orbit-api.onrender.com/mcp",
+      "headers": {
+        "Authorization": "Bearer orbit_sk_dev_agent1"
+      }
+    }
+  }
+}

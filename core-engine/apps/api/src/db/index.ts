@@ -48,11 +48,19 @@ export function runMigrations(db: Database): void {
 }
 
 /**
- * Shared singleton connection for the running server. Tests should call
- * `createDb(":memory:")` instead of importing this, so they stay isolated.
+ * Shared connection used by the running server and route handlers. Tests can
+ * swap in an isolated in-memory DB with `setDbForTesting(createDb(":memory:"))`.
  */
 let _db: Database | null = null;
+let _override: Database | null = null;
+
 export function db(): Database {
+  if (_override) return _override;
   if (!_db) _db = createDb();
   return _db;
+}
+
+/** Test hook: force `db()` to return the given connection. Pass null to reset. */
+export function setDbForTesting(instance: Database | null): void {
+  _override = instance;
 }

@@ -2,12 +2,17 @@ import { Elysia } from "elysia";
 import type { OrbitErrorBody } from "@orbit/types";
 import { OrbitError } from "./errors.ts";
 import { db } from "./db/index.ts";
+import { repoRoutes } from "./routes/repos.ts";
+import { commitRoutes } from "./routes/commits.ts";
+import { agentRoutes } from "./routes/agents.ts";
+import { contextRoutes } from "./routes/context.ts";
+import { sessionRoutes } from "./routes/sessions.ts";
+import { eventRoutes } from "./routes/events.ts";
 
 export function createApp() {
   const app = new Elysia()
     // Global error handler → §4.4 error contract: { error: { code, message } }.
-    .onError((ctx: { error: unknown; code: string; set: { status?: number | string } }) => {
-      const { error, code, set } = ctx;
+    .onError(({ error, code, set }) => {
       if (error instanceof OrbitError) {
         set.status = error.status;
         return error.toBody();
@@ -29,7 +34,13 @@ export function createApp() {
         error: { code: "INTERNAL", message: String((error as Error)?.message ?? error) },
       } satisfies OrbitErrorBody;
     })
-    .get("/health", () => ({ status: "ok", service: "orbit-api" }));
+    .get("/health", () => ({ status: "ok", service: "orbit-api" }))
+    .use(repoRoutes)
+    .use(commitRoutes)
+    .use(agentRoutes)
+    .use(contextRoutes)
+    .use(sessionRoutes)
+    .use(eventRoutes);
 
   return app;
 }

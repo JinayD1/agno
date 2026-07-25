@@ -9,8 +9,10 @@
   "scripts": {
     "build": "bun run --filter '*' build",
     "test": "bun test",
-    "dev:api": "bun run --filter '@orbit/api' dev",
-    "migrate": "bun run --filter '@orbit/api' migrate"
+    "dev": "bun --watch apps/api/src/index.ts",
+    "start": "bun apps/api/src/index.ts",
+    "migrate": "bun apps/api/src/db/migrate.ts",
+    "seed": "bun apps/api/src/seed.ts"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

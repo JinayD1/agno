@@ -1,0 +1,6 @@
+# Use a hoisted node_modules layout so `tsc` can resolve Elysia's internal
+# subpath type imports (elysia/context, elysia/types, ...). The isolated
+# (.bun) layout leaves those unresolved, collapsing Elysia's handler context
+# generics to `any`.
+[install]
+linker = "hoisted"
